@@ -1,4 +1,4 @@
-name: Release Please
+name: Release
 
 on:
   push:
@@ -6,16 +6,72 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
-  release-please:
-    name: Release Please
+  release:
+    name: Create Release
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
+      - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+
+      - name: Determine version
+        id: version
+        run: |
+          CURRENT=$(jq -r '.version' custom_components/queued_announcements/manifest.json)
+          # If a tag already exists for the current version, bump the patch
+          if git tag --list "v${CURRENT}" | grep -q .; then
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+            PATCH=$((PATCH + 1))
+            echo "version=${MAJOR}.${MINOR}.${PATCH}" >> "$GITHUB_OUTPUT"
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${CURRENT}" >> "$GITHUB_OUTPUT"
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update version files
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          V="${{ steps.version.outputs.version }}"
+          jq --arg v "$V" '.version = $v' \
+            custom_components/queued_announcements/manifest.json > /tmp/manifest.json
+          mv /tmp/manifest.json custom_components/queued_announcements/manifest.json
+          jq --arg v "$V" '.["."] = $v' \
+            .release-please-manifest.json > /tmp/rp-manifest.json
+          mv /tmp/rp-manifest.json .release-please-manifest.json
+
+      - name: Commit and push version bump
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          V="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add custom_components/queued_announcements/manifest.json \
+                  .release-please-manifest.json
+          git commit -m "chore: release v${V} [skip ci]"
+          git push origin main
+
+      - name: Create tag
+        run: |
+          V="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${V}"
+          git push origin "v${V}"
+
+      - name: Create GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.version.outputs.version }}';
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${version}`,
+              name: `v${version}`,
+              generate_release_notes: true,
+            });
