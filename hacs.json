@@ -1,0 +1,7 @@
+{
+  "name": "Queued Announcements",
+  "domains": ["queued_announcements"],
+  "documentation": "https://github.com/constructorfleet/hacs-queued-announcements",
+  "codeowners": ["@constructorfleet"],
+  "homeassistant": "2026.4.0"
+}

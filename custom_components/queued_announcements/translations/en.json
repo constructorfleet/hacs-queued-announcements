@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Queued Announcements",
+        "data": {
+          "work_hours_start": "Work hours start (HH:MM:SS)",
+          "work_hours_end": "Work hours end (HH:MM:SS)",
+          "flush_time": "Flush time (HH:MM:SS)",
+          "announce_service": "Announce service (e.g. script.house_announce)",
+          "dedupe_mode": "Deduplication mode",
+          "ttl_minutes": "TTL in minutes (optional)",
+          "summarize_on_flush": "Announce summary before flushing"
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Only one instance of Queued Announcements is allowed."
+    },
+    "error": {
+      "invalid_service": "Service must be in 'domain.service' format."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Queued Announcements options",
+        "data": {
+          "work_hours_start": "Work hours start (HH:MM:SS)",
+          "work_hours_end": "Work hours end (HH:MM:SS)",
+          "flush_time": "Flush time (HH:MM:SS)",
+          "announce_service": "Announce service (e.g. script.house_announce)",
+          "dedupe_mode": "Deduplication mode",
+          "ttl_minutes": "TTL in minutes (optional)",
+          "summarize_on_flush": "Announce summary before flushing"
+        }
+      }
+    },
+    "error": {
+      "invalid_service": "Service must be in 'domain.service' format."
+    }
+  }
+}
