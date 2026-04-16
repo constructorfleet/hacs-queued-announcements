@@ -1,4 +1,5 @@
 """Sensor platform for Queued Announcements – exposes queue count."""
+
 from __future__ import annotations
 
 import logging
@@ -44,9 +45,7 @@ class QueuedAnnouncementsCountSensor(SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Subscribe to queue update events."""
         self.async_on_remove(
-            self.hass.bus.async_listen(
-                f"{DOMAIN}_queue_updated", self._handle_update
-            )
+            self.hass.bus.async_listen(f"{DOMAIN}_queue_updated", self._handle_update)
         )
 
     @callback

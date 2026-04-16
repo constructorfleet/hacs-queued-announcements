@@ -1,11 +1,11 @@
 """Config flow for Queued Announcements."""
+
 from __future__ import annotations
 
 from datetime import time
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.core import callback
 
@@ -64,25 +64,19 @@ class QueuedAnnouncementsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_WORK_HOURS_END, default="17:00:00"): str,
                 vol.Required(CONF_FLUSH_TIME, default="17:00:00"): str,
                 vol.Required(CONF_ANNOUNCE_SERVICE): str,
-                vol.Optional(CONF_DEDUPE_MODE, default=DEFAULT_DEDUPE_MODE): vol.In(
-                    DEDUPE_MODES
-                ),
+                vol.Optional(CONF_DEDUPE_MODE, default=DEFAULT_DEDUPE_MODE): vol.In(DEDUPE_MODES),
                 vol.Optional(CONF_TTL_MINUTES): vol.Any(None, vol.Coerce(int)),
-                vol.Optional(
-                    CONF_SUMMARIZE_ON_FLUSH, default=DEFAULT_SUMMARIZE_ON_FLUSH
-                ): bool,
+                vol.Optional(CONF_SUMMARIZE_ON_FLUSH, default=DEFAULT_SUMMARIZE_ON_FLUSH): bool,
             }
         )
 
-        return self.async_show_form(
-            step_id="user", data_schema=schema, errors=errors
-        )
+        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
     @staticmethod
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
-    ) -> "QueuedAnnouncementsOptionsFlow":
+    ) -> QueuedAnnouncementsOptionsFlow:
         return QueuedAnnouncementsOptionsFlow(config_entry)
 
 
@@ -137,6 +131,4 @@ class QueuedAnnouncementsOptionsFlow(config_entries.OptionsFlow):
             }
         )
 
-        return self.async_show_form(
-            step_id="init", data_schema=schema, errors=errors
-        )
+        return self.async_show_form(step_id="init", data_schema=schema, errors=errors)

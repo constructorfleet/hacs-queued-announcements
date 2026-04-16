@@ -1,13 +1,13 @@
 """Unit tests for the QueueManager core logic."""
+
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime, time, timezone
+import os
+import sys
+from datetime import UTC, datetime, time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import sys
-import os
 
 # Allow imports from the integration without a full HA install
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -25,10 +25,10 @@ from custom_components.queued_announcements.const import (
 from custom_components.queued_announcements.manager import QueueItem, QueueManager, _parse_time
 from custom_components.queued_announcements.storage import QueueStorage
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_manager(
     hass,
@@ -64,6 +64,7 @@ def _make_hass() -> MagicMock:
 # _parse_time
 # ---------------------------------------------------------------------------
 
+
 class TestParseTime:
     def test_hhmm(self):
         assert _parse_time("09:00") == time(9, 0)
@@ -83,6 +84,7 @@ class TestParseTime:
 # ---------------------------------------------------------------------------
 # QueueItem
 # ---------------------------------------------------------------------------
+
 
 class TestQueueItem:
     def test_create_roundtrip(self):
@@ -104,7 +106,7 @@ class TestQueueItem:
         assert item.is_expired(60) is False
 
     def test_is_expired_past_ttl(self):
-        past = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        past = datetime(2000, 1, 1, tzinfo=UTC)
         item = QueueItem(
             id="x",
             message="old",
@@ -118,6 +120,7 @@ class TestQueueItem:
 # ---------------------------------------------------------------------------
 # QueueManager – is_work_hours
 # ---------------------------------------------------------------------------
+
 
 class TestIsWorkHours:
     def test_within_work_hours(self):
@@ -148,6 +151,7 @@ class TestIsWorkHours:
 # ---------------------------------------------------------------------------
 # QueueManager – enqueue
 # ---------------------------------------------------------------------------
+
 
 class TestEnqueue:
     @pytest.mark.asyncio
@@ -215,6 +219,7 @@ class TestEnqueue:
 # QueueManager – dequeue
 # ---------------------------------------------------------------------------
 
+
 class TestDequeue:
     @pytest.mark.asyncio
     async def test_dequeue_removes_matching_tag(self):
@@ -242,6 +247,7 @@ class TestDequeue:
 # QueueManager – flush
 # ---------------------------------------------------------------------------
 
+
 class TestFlush:
     @pytest.mark.asyncio
     async def test_flush_during_work_hours_noop(self):
@@ -268,7 +274,7 @@ class TestFlush:
     @pytest.mark.asyncio
     async def test_flush_drops_expired_items(self):
         hass = _make_hass()
-        past = datetime(2000, 1, 1, tzinfo=timezone.utc).isoformat()
+        past = datetime(2000, 1, 1, tzinfo=UTC).isoformat()
         old_item = {
             "id": "old-1",
             "message": "stale",
@@ -288,6 +294,7 @@ class TestFlush:
 # QueueManager – clear
 # ---------------------------------------------------------------------------
 
+
 class TestClear:
     @pytest.mark.asyncio
     async def test_clear_empties_queue(self):
@@ -305,6 +312,7 @@ class TestClear:
 # ---------------------------------------------------------------------------
 # QueueManager – peek
 # ---------------------------------------------------------------------------
+
 
 class TestPeek:
     @pytest.mark.asyncio

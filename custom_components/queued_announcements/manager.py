@@ -1,17 +1,17 @@
 """Core queue manager for Queued Announcements."""
+
 from __future__ import annotations
 
 import logging
 import uuid
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, time, timezone
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime, time
 
 from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_ANNOUNCE_SERVICE,
     CONF_DEDUPE_MODE,
-    CONF_FLUSH_TIME,
     CONF_SUMMARIZE_ON_FLUSH,
     CONF_TTL_MINUTES,
     CONF_WORK_HOURS_END,
@@ -38,12 +38,12 @@ class QueueItem:
     critical: bool
 
     @staticmethod
-    def create(message: str, tag: str, critical: bool) -> "QueueItem":
+    def create(message: str, tag: str, critical: bool) -> QueueItem:
         return QueueItem(
             id=str(uuid.uuid4()),
             message=message,
             tag=tag,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             critical=critical,
         )
 
@@ -51,7 +51,7 @@ class QueueItem:
         return asdict(self)
 
     @staticmethod
-    def from_dict(data: dict) -> "QueueItem":
+    def from_dict(data: dict) -> QueueItem:
         return QueueItem(
             id=data["id"],
             message=data["message"],
@@ -65,7 +65,7 @@ class QueueItem:
         if ttl_minutes is None:
             return False
         created = datetime.fromisoformat(self.created_at)
-        age_minutes = (datetime.now(timezone.utc) - created).total_seconds() / 60
+        age_minutes = (datetime.now(UTC) - created).total_seconds() / 60
         return age_minutes > ttl_minutes
 
 
@@ -126,9 +126,7 @@ class QueueManager:
         critical: bool = False,
     ) -> None:
         """Add a message to the queue or announce it immediately."""
-        _LOGGER.debug(
-            "enqueue called: message=%r tag=%r critical=%s", message, tag, critical
-        )
+        _LOGGER.debug("enqueue called: message=%r tag=%r critical=%s", message, tag, critical)
 
         if critical:
             _LOGGER.debug("Critical announcement – delivering immediately")
@@ -220,9 +218,7 @@ class QueueManager:
                 return True
             if mode == DEDUPE_MODE_MESSAGE and existing.message == message:
                 return True
-            if mode == DEDUPE_MODE_BOTH and (
-                existing.tag == tag or existing.message == message
-            ):
+            if mode == DEDUPE_MODE_BOTH and (existing.tag == tag or existing.message == message):
                 return True
         return False
 
@@ -238,9 +234,7 @@ class QueueManager:
             return
         domain, service = parts
         _LOGGER.debug("Calling %s.%s with message=%r", domain, service, message)
-        await self._hass.services.async_call(
-            domain, service, {"message": message}, blocking=False
-        )
+        await self._hass.services.async_call(domain, service, {"message": message}, blocking=False)
 
     def _async_fire_state_changed(self) -> None:
         """Fire a HA event so entities refresh."""

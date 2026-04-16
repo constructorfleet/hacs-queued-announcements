@@ -1,0 +1,99 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Check formatting
+        run: ruff format --check .
+
+      - name: Check linting
+        run: ruff check .
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install homeassistant pytest pytest-asyncio pytest-mock pytest-cov
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=custom_components/queued_announcements \
+            --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.12'
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 7
+
+  validate-hacs:
+    name: Validate HACS
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate hacs.json
+        run: |
+          python - <<'EOF'
+          import json, sys
+          with open("hacs.json") as f:
+              data = json.load(f)
+          required = {"name", "domains", "documentation", "codeowners", "homeassistant"}
+          missing = required - data.keys()
+          if missing:
+              print(f"hacs.json missing keys: {missing}", file=sys.stderr)
+              sys.exit(1)
+          print("hacs.json OK")
+          EOF
+
+      - name: Validate manifest.json
+        run: |
+          python - <<'EOF'
+          import json, sys
+          with open("custom_components/queued_announcements/manifest.json") as f:
+              data = json.load(f)
+          required = {"domain", "name", "version", "config_flow", "codeowners", "iot_class", "documentation"}
+          missing = required - data.keys()
+          if missing:
+              print(f"manifest.json missing keys: {missing}", file=sys.stderr)
+              sys.exit(1)
+          print("manifest.json OK, version:", data["version"])
+          EOF

@@ -1,4 +1,5 @@
 """Setup and teardown for the Queued Announcements integration."""
+
 from __future__ import annotations
 
 import logging

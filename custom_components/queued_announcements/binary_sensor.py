@@ -1,4 +1,5 @@
 """Binary sensor – True when within configured work hours."""
+
 from __future__ import annotations
 
 import logging
@@ -42,11 +43,7 @@ class WorkHoursActiveSensor(BinarySensorEntity):
 
     async def async_added_to_hass(self) -> None:
         """Refresh state every minute so the sensor stays accurate."""
-        self.async_on_remove(
-            async_track_time_change(
-                self.hass, self._handle_tick, second=0
-            )
-        )
+        self.async_on_remove(async_track_time_change(self.hass, self._handle_tick, second=0))
 
     @callback
     def _handle_tick(self, _now: object) -> None:

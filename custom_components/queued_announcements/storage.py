@@ -1,4 +1,5 @@
 """Persistence layer for the Queued Announcements integration."""
+
 from __future__ import annotations
 
 import logging
@@ -16,9 +17,7 @@ class QueueStorage:
     """Wraps Home Assistant's Store for queue persistence."""
 
     def __init__(self, hass: HomeAssistant) -> None:
-        self._store: Store[list[dict[str, Any]]] = Store(
-            hass, STORAGE_VERSION, STORAGE_KEY
-        )
+        self._store: Store[list[dict[str, Any]]] = Store(hass, STORAGE_VERSION, STORAGE_KEY)
 
     async def async_load(self) -> list[dict[str, Any]]:
         """Load queue from persistent storage."""
