@@ -1,0 +1,65 @@
+enqueue:
+  name: Enqueue announcement
+  description: >
+    Add an announcement to the queue. If critical, or outside work hours,
+    it is delivered immediately instead.
+  fields:
+    message:
+      name: Message
+      description: The announcement text.
+      required: true
+      example: "Dinner is ready!"
+      selector:
+        text:
+    tag:
+      name: Tag
+      description: >
+        A logical grouping label. Used for deduplication and dequeue.
+        Defaults to "general".
+      required: false
+      example: "dinner"
+      selector:
+        text:
+    critical:
+      name: Critical
+      description: >
+        When true the message bypasses the queue and is announced immediately.
+      required: false
+      default: false
+      selector:
+        boolean:
+
+dequeue:
+  name: Dequeue by tag
+  description: Remove all queued announcements with the given tag.
+  fields:
+    tag:
+      name: Tag
+      description: Tag whose items should be removed.
+      required: true
+      example: "dinner"
+      selector:
+        text:
+
+flush:
+  name: Flush queue
+  description: >
+    Announce all valid queued items and clear the queue.
+    Has no effect during work hours unless force is set.
+  fields:
+    force:
+      name: Force
+      description: >
+        When true, flush even if within work hours.
+      required: false
+      default: false
+      selector:
+        boolean:
+
+clear:
+  name: Clear queue
+  description: Remove all queued announcements without announcing them.
+
+peek:
+  name: Peek at queue
+  description: Log the current queue contents (for debugging).
